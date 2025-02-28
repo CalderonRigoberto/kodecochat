@@ -25,6 +25,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.rcalderon.kodecochat.conversation.ConversationContent
+import com.rcalderon.kodecochat.data.model.exampleUiState
 import com.rcalderon.kodecochat.ui.theme.KodecoChatTheme
 
 class MainActivity : ComponentActivity() {
@@ -32,44 +34,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            Scaffold  { innerPadding ->
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(innerPadding),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    val context = LocalContext.current
-                    var chatInputText by remember { mutableStateOf(context.getString(R.string.chat_entry_default)) }
-                    var chatOutputText by remember { mutableStateOf(context.getString(R.string.chat_display_default)) }
-
-                    Text(text = chatOutputText)
-
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp),
-                        horizontalAlignment = Alignment.End
-                    ) {
-                        OutlinedTextField(
-                            modifier = Modifier.fillMaxWidth(),
-                            value = chatInputText,
-                            onValueChange = {
-                                chatInputText = it
-                            },
-                            label = {
-                                Text(text = stringResource(R.string.chat_entry_label))
-                            }
-                        )
-
-                        Button(
-                            enabled = chatInputText.isNotBlank(),
-                            onClick = {
-                                chatOutputText = chatInputText
-                                chatInputText = ""
-                            }
-                        ) {
-                            Text(text = stringResource(R.string.send_button))
-                        }
-                    }
-                }
-            }
+            ConversationContent(
+                uiState = exampleUiState
+            )
         }
     }
 }

@@ -4,4 +4,6 @@
     <string name="chat_entry_default">Type your text here</string>
     <string name="send_button">Send</string>
     <string name="chat_entry_label">Enter Chat Text</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="info">Information\n</string>
 </resources>

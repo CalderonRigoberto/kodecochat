@@ -12,13 +12,18 @@ import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFrom
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
@@ -36,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,11 +59,15 @@ import com.rcalderon.kodecochat.components.KodecochatAppBar
 import com.rcalderon.kodecochat.data.model.Message
 import com.rcalderon.kodecochat.data.model.MessageUiModel
 import com.rcalderon.kodecochat.utilities.isoToTimeAgo
+import kotlinx.coroutines.launch
 
 @Composable
 fun ConversationContent(
     uiState: ConversationUiState
 ) {
+    val scope = rememberCoroutineScope()
+    val scrollState = rememberLazyListState()
+
     Surface {
         Box(
             modifier = Modifier.fillMaxSize()
@@ -67,9 +77,22 @@ fun ConversationContent(
             ) {
                 Messages(
                     messages = uiState.messages,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    scrollState = scrollState
                 )
-                SimpleUserInput()
+                UserInput(
+                    onMessageSent = {
+                        uiState.addMessage(it, null)
+                    },
+                    resetScroll = {
+                         scope.launch {
+                             scrollState.scrollToItem(0)
+                         }
+                    },
+                    modifier = Modifier
+                        .navigationBarsPadding()
+                        .imePadding()
+                )
             }
 
             ChannelNameBar(channelName = "Android Apprentice")
@@ -101,40 +124,14 @@ fun ChannelNameBar(channelName: String) {
 }
 
 @Composable
-fun SimpleUserInput() {
-    val context = LocalContext.current
-    var chatInputText by remember { mutableStateOf("") }
-    var chatOutputText by remember { mutableStateOf(context.getString(R.string.chat_display_default)) }
-
-    Text(text = chatOutputText)
-    Row {
-        OutlinedTextField(
-            value = chatInputText,
-            onValueChange = {
-                chatInputText = it
-            },
-            placeholder = {
-                Text(text = stringResource(R.string.chat_entry_default))
-            }
-        )
-        Button(
-            onClick = {
-                chatOutputText = chatInputText
-                chatInputText = ""
-            }
-        ) {
-            Text(text = stringResource(R.string.send_button))
-        }
-    }
-}
-
-@Composable
 fun Messages(
     modifier: Modifier,
-    messages: List<MessageUiModel>
+    messages: List<MessageUiModel>,
+    scrollState: LazyListState
 ) {
     Box(modifier = modifier) {
         LazyColumn(
+            state = scrollState,
             contentPadding = WindowInsets.statusBars.add(WindowInsets(top = 90.dp))
                 .asPaddingValues(),
             modifier = Modifier.fillMaxSize()

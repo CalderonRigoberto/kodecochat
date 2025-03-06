@@ -27,9 +27,6 @@ class MainActivity : ComponentActivity() {
             val messagesWithUsers by viewModel.messages.collectAsStateWithLifecycle()
             val currentUiState = ConversationUiState(channelName = "Android Apprentice", messagesWithUsers, viewModel)
 
-            LaunchedEffect(messagesWithUsers) {
-                Log.d("collectAsStateWithLifecyclea", "onCreate: Han cambiado los valores")
-            }
             KodecoChatTheme {
                 ConversationContent(
                     uiState = currentUiState

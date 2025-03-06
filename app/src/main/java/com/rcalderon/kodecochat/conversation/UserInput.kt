@@ -397,7 +397,7 @@ private fun UserInputText(
 //                Modifier.fillMaxSize()
                 modifier = Modifier
                     .height(64.dp)
-                    .weight(1f)
+                    .weight(.3f)
                     .align(Alignment.Bottom)
             ) {
                 var lastFocusState by remember { mutableStateOf(false) }

@@ -6,4 +6,5 @@
     <string name="chat_entry_label">Enter Chat Text</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="info">Information\n</string>
+    <string name="jump_bottom">Jump to bottom</string>
 </resources>

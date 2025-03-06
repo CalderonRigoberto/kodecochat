@@ -38,23 +38,29 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.LastBaseline
-import androidx.compose.ui.platform.LocalContext
+
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rcalderon.kodecochat.R
+import com.rcalderon.kodecochat.components.JumpToBottom
 import com.rcalderon.kodecochat.components.KodecochatAppBar
 import com.rcalderon.kodecochat.data.model.Message
 import com.rcalderon.kodecochat.data.model.MessageUiModel
@@ -67,8 +73,15 @@ fun ConversationContent(
 ) {
     val scope = rememberCoroutineScope()
     val scrollState = rememberLazyListState()
+    val authorId = uiState.authorId.collectAsStateWithLifecycle()
 
-    Surface {
+    LaunchedEffect(key1 = uiState.messages) {
+        scope.launch {
+            scrollState.scrollToItem(0)
+        }
+    }
+
+    Surface() {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -78,7 +91,8 @@ fun ConversationContent(
                 Messages(
                     messages = uiState.messages,
                     modifier = Modifier.weight(1f),
-                    scrollState = scrollState
+                    scrollState = scrollState,
+                    authorId = authorId.value
                 )
                 UserInput(
                     onMessageSent = {
@@ -127,10 +141,14 @@ fun ChannelNameBar(channelName: String) {
 fun Messages(
     modifier: Modifier,
     messages: List<MessageUiModel>,
-    scrollState: LazyListState
+    scrollState: LazyListState,
+    authorId: String
 ) {
+    val scope = rememberCoroutineScope()
+
     Box(modifier = modifier) {
         LazyColumn(
+            reverseLayout = true,
             state = scrollState,
             contentPadding = WindowInsets.statusBars.add(WindowInsets(top = 90.dp))
                 .asPaddingValues(),
@@ -149,9 +167,11 @@ fun Messages(
 
 
                 MessageUi(
-                    onAuthorClick = {},
+                    onAuthorClick = {
+
+                    },
                     msg = content,
-                    authorId = "me",
+                    authorId = authorId,
                     userId = userId ?: "",
                     isFirstMessageByAuthor = isFirstMessageByAuthor,
                     isLastMessageByAuthor = isLastMessageByAuthor
@@ -160,6 +180,27 @@ fun Messages(
             }
         }
     }
+
+    val jumpThreshold = with(LocalDensity.current) {
+        56.dp.toPx();
+    }
+    val jumpToBottomButtonEnabled by remember {
+        derivedStateOf {
+            scrollState.firstVisibleItemIndex != 0 ||
+                    scrollState.firstVisibleItemScrollOffset > jumpThreshold
+        }
+    }
+
+    JumpToBottom(
+        // Only show if the scroller is not at the bottom
+        enabled = jumpToBottomButtonEnabled,
+        onClicked = {
+            scope.launch {
+                scrollState.animateScrollToItem(0)
+            }
+        },
+    )
+
 }
 
 @Composable
@@ -171,7 +212,7 @@ fun MessageUi(
     isFirstMessageByAuthor: Boolean,
     isLastMessageByAuthor: Boolean
 ) {
-    val isUserMe = userId == "me"
+    val isUserMe = authorId == userId
     val borderColor =
         if (isUserMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
     val authorImageId: Int =

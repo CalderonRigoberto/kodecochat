@@ -37,6 +37,7 @@ class MainViewModel : ViewModel() {
     )
     private val _currentChatRoom = MutableStateFlow(emptyChatRoom)
     val currentRoom = _currentChatRoom.asStateFlow()
+    val currentUserId = MutableStateFlow(userId)
 
     init {
         viewModelScope.launch(Dispatchers.Default) {
@@ -66,7 +67,7 @@ class MainViewModel : ViewModel() {
     private suspend fun createMessageForRoom(message: Message, chatRoom: ChatRoom) {
         val user = User(userId)
         val messageUiModel = MessageUiModel(message, user)
-        _messages.add(messageUiModel)
+        _messages.add(0, messageUiModel)
         _messagesFlow.emit(_messages)
     }
 }
